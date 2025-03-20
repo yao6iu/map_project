@@ -1,7 +1,6 @@
 import 'package:menu_map/services/api_service.dart';
 import 'package:flutter/material.dart';
-import 'package:menu_map/models/dish.dart';
-import 'package:menu_map/widgets/dish_details_dialog.dart';
+
 
 class MapScreen extends StatelessWidget{
   const MapScreen({Key ? key}) : super(key: key);
@@ -204,7 +203,7 @@ class DishDetailsPage extends StatelessWidget{
               const SizedBox(height: 8),
               Text(dish['description']!, style: const TextStyle(fontSize: 16)),
               const SizedBox(height: 8),
-              Text('Province: ${dish['province'!]}', style: const TextStyle(fontSize: 14)),
+              Text('Province: ${dish['province']!}', style: const TextStyle(fontSize: 14)),
             ],
           ),
       ),
