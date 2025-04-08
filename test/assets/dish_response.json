@@ -1,0 +1,7 @@
+{
+  "parse": {
+    "text": {
+      "*": "<table class=\"wikitable\">\n  <tbody>\n    <tr>\n      <th>English</th>\n      <th>Traditional Chinese</th>\n      <th>Simplified Chinese</th>\n      <th>Pinyin</th>\n      <th>Description</th>\n    </tr>\n    <tr>\n      <td>Egg dumplings</td>\n      <td>農家蛋餃</td>\n      <td>农家蛋饺</td>\n      <td>nóngjiā dàn jiǎo</td>\n      <td>These dumplings, usually associated with rural cooking, use thin sheets of egg instead of flour for the wrapping. Egg dumplings traditionally use pork as a filling. In preparation, a ladle is lightly coated with oil and heated, well beaten eggs are spooned into the ladle and cooked until the mixture forms a dumpling wrapper. The pork filling is then spooned into the egg wrapping and the entire dumpling steamed. It is often served with soy sauce.</td>\n    </tr>\n  </tbody>\n</table>"
+    }
+  }
+}
