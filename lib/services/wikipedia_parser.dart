@@ -2,89 +2,82 @@ import 'package:html/parser.dart';
 import 'package:menu_map/models/dish.dart';
 
 class WikipediaParser {
-  static List<Dish> parseDishesFromTable(String html, String cuisine) {
+  /// Shared entry for production and testing
+  static List<Dish> parseDishesFromJson(
+      Map<String, dynamic> json, String cuisine) {
+    final html = json['parse']?['text']?['*'] as String? ?? '';
+    if (!html.contains('<table')) {
+      throw FormatException('No table found for $cuisine');
+    }
+    return _parseDishesFromTable(html, cuisine);
+  }
 
-
+  static List<Dish> _parseDishesFromTable(String html, String cuisine) {
     final document = parse(html);
     final tables = document.querySelectorAll('table.wikitable');
-    List<Dish> dishes = [];
+    final dishes = <Dish>[];
 
-    for (var table in tables) {
-      final rows = table.querySelectorAll('tr');
-      for (int i = 1; i < rows.length; i++) {
-        final cells = rows[i].querySelectorAll('td');
-        if (cells.length < 3) continue;
+    for (final table in tables) {
+      // First, read the header
+      final headerRow = table.querySelector('tr');
+      if (headerRow == null) continue;
+      final headers =
+      headerRow.querySelectorAll('th').map((th) => th.text.trim()).toList();
+
+      // Second, dynamically search for the indexes of each column
+      int idxName = _findHeaderIndex(headers, ['English', 'Dish', 'Name']);
+      int idxImage = _findHeaderIndex(headers, ['Image', 'Photo']);
+      int idxSimp = headers.indexWhere(
+              (h) => h.toLowerCase() == 'simplified chinese');
+      int idxDesc = _findHeaderIndex(headers, ['description', 'notes',]);
+
+      // If it couldn't find 'idxName',then skip this table
+      if (idxName < 0) continue;
+
+      // Third, analyze each line
+      for (final row in table.querySelectorAll('tr').skip(1)) {
+        final cells = row.querySelectorAll('td');
+        if (cells.length <= idxName) continue;
 
         try {
-          String name = cells[0].text.trim();
-          var imgElement = cells[1].querySelector('img');
-          String imageUrl = imgElement != null
-              ? 'https:${imgElement.attributes['src'] ?? ''}'
-              : '';
+          // the dish name
+          final name = cells[idxName].text.trim();
 
-          String notes = 'nothing';
-          String description = 'nothing';
-          String simplified = 'nothing';
-
-          if (cuisine == 'Hunan') {
-            if (cells.length > 2) {
-              simplified = cells[2].text.trim().replaceAll(RegExp(r'[a-zA-Z]'), '');
-              description = cells[2].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-            }
-          } else if (cuisine == 'Jiangsu') {
-            if (cells.length > 2) {
-              var zhSpan = cells[2].querySelector('span[lang="zh-Hans"]');
-              simplified = zhSpan != null
-                  ? zhSpan.text.trim()
-                  : cells[2].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-              description = cells[2].text.trim();
-            }
-          } else if (cuisine == 'Zhejiang') {
-            if (cells.length > 1) {
-              var zhSpan = cells[1].querySelector('span[lang="zh-Hans"]');
-              simplified = zhSpan != null
-                  ? zhSpan.text.trim()
-                  : cells[1].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-              description = cells[1].text.trim();
-            }
-          } else if (cuisine == 'Fujian') {
-            if (cells.length > 2) {
-              simplified = cells[1].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-              description = cells[2].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-            }
-          } else if (cuisine == 'Anhui') {
-            if (cells.length > 4) {
-              name = cells[0].text.trim();
-              simplified = cells[2].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-              description = cells[4].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-              notes = description;
-            }
-          } else {
-            if (cells.length > 3) {
-              var zhSpan = cells[3].querySelector('span[lang="zh-Hans"]');
-              simplified = zhSpan != null
-                  ? zhSpan.text.trim()
-                  : cells[3].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
-              description = cells[3].text.trim();
-            }
+          // Image
+          String imageUrl = '';
+          if (idxImage >= 0 && idxImage < cells.length) {
+            final img = cells[idxImage].querySelector('img');
+            final src = img?.attributes['src'];
+            if (src != null) imageUrl = 'https:$src';
           }
 
-          if (cells.length > 5) {
-            notes = cells[5].text.trim().replaceAll(RegExp(r'\[\d+\]'), '');
+          // Simplified Chinese
+          String simplified = '';
+          if (idxSimp >= 0 && idxSimp < cells.length) {
+            final span =
+            cells[idxSimp].querySelector('span[lang="zh-Hans"]');
+            simplified = (span?.text.trim() ?? cells[idxSimp].text.trim());
           }
 
-          if (name.isEmpty) continue;
+          // Description / Notes
+          String description = '';
+          if (idxDesc >= 0 && idxDesc < cells.length) {
+            description = cells[idxDesc].text.trim();
+          }
+          final notes = description;
 
-          dishes.add(Dish(
-            name: name,
-            description: description,
-            simplifiedChinese: simplified,
-            notes: notes,
-            province: cuisine,
-            imageUrl: imageUrl,
-          ));
-        } catch (e) {
-          print('line $i parsing failed: $e');
+          if (name.isNotEmpty) {
+            dishes.add(Dish(
+              name: name,
+              description: description,
+              simplifiedChinese: simplified,
+              notes: notes,
+              province: cuisine,
+              imageUrl: imageUrl,
+            ));
+          }
+        } on Exception catch (e) {
+          throw FormatException('Row parse failed for $cuisine: $e');
         }
       }
 
@@ -92,5 +85,18 @@ class WikipediaParser {
     }
 
     return dishes;
+  }
+
+  /// Find the index of the first header that contains any keyword. If no such header is found, return -1
+  static int _findHeaderIndex(List<String> headers, List<String> keywords) {
+    for (var i = 0; i < headers.length; i++) {
+      final h = headers[i].toLowerCase();
+      for (final kw in keywords) {
+        if (h.contains(kw.toLowerCase())) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 }

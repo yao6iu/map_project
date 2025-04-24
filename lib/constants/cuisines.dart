@@ -1,37 +1,27 @@
-const Map<String, Map<String, dynamic>> cuisinesConfig = {
-  'Sichuan': {
-    'page': 'Sichuan_cuisine',
-    'sectionId': 6,
-    'anchor': 'Notable_foods'
-  },
-  'Cantonese': {
-    'page': 'Cantonese_cuisine',
-    'sectionId': 5,
-    'anchor': 'Traditional_dishes'
-  },
-  'Jiangsu': {
-    'page': 'Jiangsu_cuisine',
-    'sectionId': 2,
-    'anchor': 'Wuxi-style_cuisine',
-  },
-  'Zhejiang': {
-    'page': 'Zhejiang_cuisine',
-    'sectionId': 2,
-    'anchor': 'Notable_dishes',
-  },
-  'Fujian': {
-    'page': 'Fujian_cuisine',
-    'sectionId': 3,
-    'anchor': 'Notable_dishes',
-  },
-  'Hunan': {
-    'page': 'Hunan_cuisine',
-    'sectionId': 3,
-    'anchor': 'List_of_notable_dishes',
-  },
-  'Anhui': {
-    'page': 'Anhui_cuisine',
-    'sectionId': 2,
-    'anchor': 'Notable_dishes_in_Anhui_cuisine',
-  },
+class CuisineName {
+  static const String sichuan   = 'Sichuan';
+  static const String cantonese = 'Cantonese';
+  static const String jiangsu   = 'Jiangsu';
+  static const String zhejiang  = 'Zhejiang';
+  static const String fujian    = 'Fujian';
+  static const String hunan     = 'Hunan';
+  static const String anhui     = 'Anhui';
+  static const String yunnan    = 'Yunnan';
+
+  static const List<String> all = [
+    sichuan, yunnan, cantonese, jiangsu,
+    zhejiang, fujian, hunan, anhui,
+  ];
+}
+
+/// Configuration for each cuisine's Wikipedia page and section.
+const Map<String, Map<String, dynamic>> cuisineConfig = {
+  CuisineName.sichuan:   {'page': 'Sichuan_cuisine', 'section': 6},
+  CuisineName.cantonese: {'page': 'Cantonese_cuisine', 'section': 5},
+  CuisineName.jiangsu:   {'page': 'Jiangsu_cuisine', 'section': 2},
+  CuisineName.zhejiang:  {'page': 'Zhejiang_cuisine', 'section': 2},
+  CuisineName.fujian:    {'page': 'Fujian_cuisine', 'section': 3},
+  CuisineName.hunan:     {'page': 'Hunan_cuisine', 'section': 3},
+  CuisineName.anhui:     {'page': 'Anhui_cuisine', 'section': 2},
+  CuisineName.yunnan:    {'page': 'Yunnan_cuisine', 'section': 1},
 };

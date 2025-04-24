@@ -32,6 +32,7 @@ class DishDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final descParts = _parseDescription(dish.description);
 
+
     return Scaffold(
       appBar: AppBar(title: Text(dish.name)),
       body: SingleChildScrollView(

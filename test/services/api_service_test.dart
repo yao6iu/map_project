@@ -1,29 +1,46 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_map/services/api_service.dart';
 import 'package:menu_map/models/dish.dart';
+import 'package:menu_map/constants/cuisines.dart';
 
 void main() {
-  group('WikipediaAPI Tests', () {
-    test('fetchDishes should return a list of dishes from local JSON file', () async {
-      // 读取本地 JSON 文件，路径为 test/assets/dish_response.json
-      final File file = File('test/assets/dish_response.json');
-      final String testFileContents = await file.readAsString();
-      final Map<String, dynamic> mockJson = jsonDecode(testFileContents);
+  group('WikipediaAPI.fetchDishes', () {
+    late WikipediaAPI api;
 
-      // 使用新的公共方法 parseDishesFromJson 来解析 JSON 数据
-      final wikipediaAPI = WikipediaAPI();
-      final List<Dish> dishes = wikipediaAPI.parseDishesFromJson(mockJson, 'Anhui');
+    setUp(() {
+      final fixture = File('test/assets/dish_response.json').readAsStringSync();
+      final mockClient = MockClient((_) async {
+        // Use bytes instead of plain Strings to support non-Latin1 characters.
+        return Response.bytes(
+          utf8.encode(fixture),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      });
+      api = WikipediaAPI(client: mockClient);
+    });
 
-      // 验证返回的 Dish 对象是否符合预期
+    test('returns a list of Dish for Anhui (from local JSON)', () async {
+      final dishes = await api.fetchDishes(CuisineName.anhui);
+
+      expect(dishes, isA<List<Dish>>());
       expect(dishes.length, 1);
-      expect(dishes[0].name, 'Egg dumplings');
-      expect(dishes[0].simplifiedChinese, '农家蛋饺');
-      expect(dishes[0].description,
-          'These dumplings, usually associated with rural cooking, use thin sheets of egg instead of flour for the wrapping. Egg dumplings traditionally use pork as a filling. In preparation, a ladle is lightly coated with oil and heated, well beaten eggs are spooned into the ladle and cooked until the mixture forms a dumpling wrapper. The pork filling is then spooned into the egg wrapping and the entire dumpling steamed. It is often served with soy sauce.');
-      expect(dishes[0].province, 'Anhui');
+      final dish = dishes.first;
+      expect(dish.name, 'Egg dumplings');
+      expect(dish.simplifiedChinese, '农家蛋饺');
+      expect(dish.description.startsWith('These dumplings'), isTrue);
+      expect(dish.province, CuisineName.anhui);
+    });
+
+    test('throws on unsupported cuisine', () {
+      expect(
+            () => api.fetchDishes('UnknownCuisine'),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 }

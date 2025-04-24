@@ -8,21 +8,10 @@ class Dish {
 
   const Dish({
     required this.name,
-    this.description = '',
-    this.province = 'Unknown',
-    this.imageUrl = '',
-    this.simplifiedChinese = 'N/A',
-    this.notes = 'N/A',
+    required this.description,
+    required this.province,
+    required this.imageUrl,
+    required this.simplifiedChinese,
+    required this.notes,
   });
-
-  factory Dish.fromJson(Map<String, dynamic> json) {
-    return Dish(
-      name: json['name'] ?? 'Unknown Dish',
-      description: json['description'] ?? 'N/A',
-      province: json['province'] ?? 'Unknown',
-      imageUrl: json['imageUrl'] ?? '',
-      simplifiedChinese: json['simplifiedChinese'] ?? 'N/A',
-      notes: json['notes'] ?? 'N/A',
-    );
-  }
 }

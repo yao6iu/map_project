@@ -1,47 +1,39 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_map/models/dish.dart';
+import 'package:menu_map/services/wikipedia_parser.dart';
 
 void main() {
-  group('Dish Class Tests', () {
-    test('Dish creation from JSON should populate fields correctly', () {
-      final Map<String, dynamic> json = {
-        'name': 'Egg Dumplings',
-        'description': 'A tasty egg-based dumpling dish.',
-        'province': 'Hunan',
-        'imageUrl': 'https://example.com/egg_dumplings.jpg',
-        'simplifiedChinese': '蛋饺',
-        'notes': 'Delicious!'
-      };
+  group('Dish Model from WikipediaParser', () {
+    test('parses a single Dish correctly from local JSON fixture', () {
+      final jsonString = File('test/assets/dish_response.json').readAsStringSync();
+      final jsonData = json.decode(jsonString);
 
+      final dishes = WikipediaParser.parseDishesFromJson(jsonData, 'Anhui');
 
-      final dish = Dish.fromJson(json);
+      expect(dishes, isA<List<Dish>>());
+      expect(dishes.length, 1);
 
-
-      expect(dish.name, 'Egg Dumplings');
-      expect(dish.description, 'A tasty egg-based dumpling dish.');
-      expect(dish.province, 'Hunan');
-      expect(dish.imageUrl, 'https://example.com/egg_dumplings.jpg');
-      expect(dish.simplifiedChinese, '蛋饺');
-      expect(dish.notes, 'Delicious!');
+      final dish = dishes.first;
+      expect(dish.name, 'Egg dumplings');
+      expect(dish.simplifiedChinese, '农家蛋饺');
+      expect(dish.notes, contains('These dumplings, usually associated'));
+      expect(dish.description, equals(dish.notes)); // notes = description
+      expect(dish.province, 'Anhui');
     });
 
-    test('Dish creation with missing fields should use default values', () {
-
-      final Map<String, dynamic> json = {
-        'name': 'Egg Dumplings',
-        'description': 'A tasty egg-based dumpling dish.',
+    test('throws FormatException if no table found in JSON', () {
+      final jsonData = {
+        "parse": {
+          "text": {
+            "*": "<p>No table here!</p>"
+          }
+        }
       };
 
-
-      final dish = Dish.fromJson(json);
-
-
-      expect(dish.name, 'Egg Dumplings');
-      expect(dish.description, 'A tasty egg-based dumpling dish.');
-      expect(dish.province, 'Unknown');
-      expect(dish.imageUrl, '');
-      expect(dish.simplifiedChinese, 'N/A');
-      expect(dish.notes, 'N/A');
+      expect(() => WikipediaParser.parseDishesFromJson(jsonData, 'FakeCuisine'),
+          throwsA(isA<FormatException>()));
     });
   });
 }

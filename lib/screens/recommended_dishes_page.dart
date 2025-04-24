@@ -16,7 +16,7 @@ class RecommendedDishesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<String> cuisines = [
-      'Sichuan', 'Shandong', 'Cantonese', 'Jiangsu', 'Zhejiang', 'Fujian', 'Hunan', 'Anhui'
+      'Sichuan', 'Yunnan', 'Cantonese', 'Jiangsu', 'Zhejiang', 'Fujian', 'Hunan', 'Anhui'
     ];
 
     return Scaffold(
